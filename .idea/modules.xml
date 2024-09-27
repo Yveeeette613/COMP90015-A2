@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ProjectModuleManager">
+    <modules>
+      <module fileurl="file://$PROJECT_DIR$/Broker/Broker.iml" filepath="$PROJECT_DIR$/Broker/Broker.iml" />
+      <module fileurl="file://$PROJECT_DIR$/Directory/Directory.iml" filepath="$PROJECT_DIR$/Directory/Directory.iml" />
+      <module fileurl="file://$PROJECT_DIR$/Distributed Publisher-Subscriber System.iml" filepath="$PROJECT_DIR$/Distributed Publisher-Subscriber System.iml" />
+      <module fileurl="file://$PROJECT_DIR$/Publisher/Publisher.iml" filepath="$PROJECT_DIR$/Publisher/Publisher.iml" />
+      <module fileurl="file://$PROJECT_DIR$/Subscriber/Subscriber.iml" filepath="$PROJECT_DIR$/Subscriber/Subscriber.iml" />
+      <module fileurl="file://$PROJECT_DIR$/Suscriber/Suscriber.iml" filepath="$PROJECT_DIR$/Suscriber/Suscriber.iml" />
+    </modules>
+  </component>
+</project>
