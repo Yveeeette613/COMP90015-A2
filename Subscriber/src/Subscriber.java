@@ -28,13 +28,14 @@ public class Subscriber {
 
             // Display the list of brokers to the user
             System.out.println("Active brokers:");
-            System.out.println("Please select brokers with less than 10 subscribers.");
+//            System.out.println("Please select brokers with less than 10 subscribers.");
 
             for (int i = 0; i < activeBrokers.size(); i++) {
                 String brokerAddress = activeBrokers.get(i);
-                IBroker tempBroker = (IBroker) Naming.lookup("//" + brokerAddress + "/Broker");
-                int connectedSubscribers = tempBroker.getConnectedSubscribers();
-                System.out.println((i + 1) + ". " + brokerAddress + " (Connected Subscribers: " + connectedSubscribers + ")");
+//                IBroker tempBroker = (IBroker) Naming.lookup("//" + brokerAddress + "/Broker");
+//                int connectedSubscribers = tempBroker.getConnectedSubscribers();
+//                System.out.println((i + 1) + ". " + brokerAddress + " (Connected Subscribers: " + connectedSubscribers + ")");
+                System.out.println((i + 1) + ". " + brokerAddress);
             }
 
             // Allow the user to select a broker
@@ -54,11 +55,11 @@ public class Subscriber {
             // Connect to the selected broker
             broker = (IBroker) Naming.lookup("//" + brokerIP + ":" + brokerPort + "/Broker");
 
-            // Check if the broker can accept more subscribers
-            if (broker.getConnectedSubscribers() >= 10) {
-                System.out.println("Broker has reached the maximum number of connected subscribers.");
-                return;
-            }
+//            // Check if the broker can accept more subscribers
+//            if (broker.getConnectedSubscribers() >= 10) {
+//                System.out.println("Broker has reached the maximum number of connected subscribers.");
+//                return;
+//            }
 
             System.out.println("Connected to broker " + brokerIP + ":" + brokerPort);
             broker.addSubscriber(subName);

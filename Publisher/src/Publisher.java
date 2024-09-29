@@ -28,13 +28,14 @@ public class Publisher {
 
             // Display the list of brokers to the user
             System.out.println("Active brokers:");
-            System.out.println("Please select brokers with less than 5 publishers.");
+//            System.out.println("Please select brokers with less than 5 publishers.");
 
             for (int i = 0; i < activeBrokers.size(); i++) {
                 String brokerAddress = activeBrokers.get(i);
-                IBroker tempBroker = (IBroker) Naming.lookup("//" + brokerAddress + "/Broker");
-                int connectedPublishers = tempBroker.getConnectedPublishers();
-                System.out.println((i + 1) + ". " + brokerAddress + " (Connected Publishers: " + connectedPublishers + ")");
+//                IBroker tempBroker = (IBroker) Naming.lookup("//" + brokerAddress + "/Broker");
+//                int connectedPublishers = tempBroker.getConnectedPublishers();
+//                System.out.println((i + 1) + ". " + brokerAddress + " (Connected Publishers: " + connectedPublishers + ")");
+                System.out.println((i + 1) + ". " + brokerAddress);
             }
 
             // Allow the user to select a broker
@@ -54,11 +55,11 @@ public class Publisher {
             // Connect to the selected broker
             broker = (IBroker) Naming.lookup("//" + brokerIP + ":" + brokerPort + "/Broker");
 
-            // Check if the broker can accept more publishers
-            if (broker.getConnectedPublishers() >= 5) {
-                System.out.println("Broker has reached the maximum number of connected publishers.");
-                return;
-            }
+//            // Check if the broker can accept more publishers
+//            if (broker.getConnectedPublishers() >= 5) {
+//                System.out.println("Broker has reached the maximum number of connected publishers.");
+//                return;
+//            }
 
             System.out.println("Connected to broker " + brokerIP + ":" + brokerPort);
             broker.addPublisher(pubName);
