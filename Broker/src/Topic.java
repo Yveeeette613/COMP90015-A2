@@ -2,20 +2,20 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-public class topic {
+public class Topic {
     private String pubName;
     private String topicName;
-    private UUID topicId;
+    private String topicId;
     private List<String> subscribersList;
 
-    public topic(String pubName, String topicName) {
+    public Topic(String pubName, String topicName, String topicId) {
         this.pubName = pubName;
         this.topicName = topicName;
-        this.topicId = UUID.randomUUID(); // Generate a UUID
+        this.topicId = topicId;
         this.subscribersList = new ArrayList<String>();
     }
 
-    public UUID getTopicId() {
+    public String getTopicId() {
         return topicId;
     }
 
@@ -38,6 +38,11 @@ public class topic {
 
     public List<String> getSubscribersList() {
         return subscribersList;
+    }
+
+
+    public String findTopicName(String topicId) {
+        return topicName;
     }
 
 }

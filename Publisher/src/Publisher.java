@@ -76,9 +76,21 @@ public class Publisher {
                 }
             }));
 
-            // Uncomment the following lines to send a message to the broker
-            System.out.print("Please select command: create, publish, show, delete.");
-            String topic = scanner.nextLine();
+            // Publish messages
+            while (true) {
+                System.out.print("Enter the message to publish (or 'exit' to quit): ");
+                String message = scanner.nextLine();
+                if (message.equalsIgnoreCase("exit")) {
+                    break;
+                }
+                broker.publishMessage(message);
+                System.out.println("Message published.");
+            }
+
+
+//            // Uncomment the following lines to send a message to the broker
+//            System.out.print("Please select command: create, publish, show, delete.");
+//            String topic = scanner.nextLine();
 
             // System.out.print("Enter the message: ");
             // String message = scanner.nextLine();

@@ -1,12 +1,13 @@
+// Broker/src/Broker.java
 import Interface.IBroker;
 import Interface.IDirectory;
 
 import java.rmi.Naming;
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Scanner;
+import java.text.SimpleDateFormat;
+import java.util.*;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 public class Broker extends UnicastRemoteObject implements IBroker {
 
@@ -15,6 +16,7 @@ public class Broker extends UnicastRemoteObject implements IBroker {
     private IDirectory directoryService;
     private List<String> connectedPublishers;
     private List<String> connectedSubscribers;
+    private Queue<String> messageQueue;
 
     protected Broker(String brokerIP, int brokerPort, IDirectory directoryService) throws RemoteException {
         this.brokerIP = brokerIP;
@@ -22,15 +24,53 @@ public class Broker extends UnicastRemoteObject implements IBroker {
         this.directoryService = directoryService;
         this.connectedPublishers = new ArrayList<>();
         this.connectedSubscribers = new ArrayList<>();
+        this.messageQueue = new ConcurrentLinkedQueue<>();
     }
 
     @Override
-    public void forwardMessage(String topic, String message) throws RemoteException {
-        System.out.println("Message received on topic '" + topic + "': " + message);
+    public synchronized void forwardMessage(String message, Set<String> visitedBrokers) throws RemoteException {
+        if (visitedBrokers == null) {
+            visitedBrokers = new HashSet<>();
+        }
+
+        // Add current broker to the set of visited brokers
+        visitedBrokers.add(brokerIP + ":" + brokerPort);
+
+        for (String subscriber : connectedSubscribers) {
+            System.out.println("Forwarding message to subscriber: " + subscriber);
+            messageQueue.add(message);
+        }
+
+        List<String> otherBrokers = directoryService.getActiveBrokers(brokerIP, brokerPort);
+        for (String brokerAddress : otherBrokers) {
+            if (!visitedBrokers.contains(brokerAddress)) {
+                try {
+                    IBroker otherBroker = (IBroker) Naming.lookup("//" + brokerAddress + "/Broker");
+                    otherBroker.forwardMessage(message, visitedBrokers);
+                } catch (Exception e) {
+                    System.out.println("Failed to forward message to broker: " + brokerAddress);
+                    e.printStackTrace();
+                }
+            }
+        }
+    }
+
+    public synchronized void publishMessage(String message) throws RemoteException {
+        String timestamp = new SimpleDateFormat("dd/MM HH:mm:ss").format(new Date());
+        String formattedMessage = "[" + timestamp + "] " + message;
+        System.out.println("Publishing message: " + formattedMessage);
+        forwardMessage(formattedMessage, null);
+    }
+
+
+
+    @Override
+    public String receiveMessage() throws RemoteException {
+        return messageQueue.poll();
     }
 
     @Override
-    public void notify(String message) throws RemoteException {
+    public synchronized void notify(String message) throws RemoteException {
         System.out.println("Notification: " + message);
     }
 
@@ -40,13 +80,15 @@ public class Broker extends UnicastRemoteObject implements IBroker {
     }
 
     @Override
-    public void addPublisher(String name) throws RemoteException {
+    public synchronized void addPublisher(String name) throws RemoteException {
         connectedPublishers.add(name);
+        System.out.println("New publisher connected: " + name);
     }
 
     @Override
-    public void removePublisher(String name) throws RemoteException {
+    public synchronized void removePublisher(String name) throws RemoteException {
         connectedPublishers.remove(name);
+        System.out.println("Publisher disconnected: " + name);
     }
 
     @Override
@@ -55,13 +97,30 @@ public class Broker extends UnicastRemoteObject implements IBroker {
     }
 
     @Override
-    public void addSubscriber(String name) throws RemoteException {
+    public synchronized void addSubscriber(String name) throws RemoteException {
         connectedSubscribers.add(name);
+        System.out.println("New subscriber connected: " + name);
     }
 
     @Override
-    public void removeSubscriber(String name) throws RemoteException {
+    public synchronized void removeSubscriber(String name) throws RemoteException {
         connectedSubscribers.remove(name);
+        System.out.println("Subscriber disconnected: " + name);
+    }
+
+    public void disconnect() throws RemoteException {
+        directoryService.removeBroker(brokerIP, brokerPort);
+        System.out.println("Broker disconnected: " + brokerIP + ":" + brokerPort);
+        List<String> otherBrokers = directoryService.getActiveBrokers(brokerIP, brokerPort);
+        for (String brokerAddress : otherBrokers) {
+            try {
+                IBroker otherBroker = (IBroker) Naming.lookup("//" + brokerAddress + "/Broker");
+                otherBroker.notify("Broker disconnected: " + brokerIP + ":" + brokerPort);
+            } catch (Exception e) {
+                System.out.println("Failed to connect to broker: " + brokerAddress);
+                e.printStackTrace();
+            }
+        }
     }
 
     public void registerAndConnect() throws Exception {
@@ -72,10 +131,7 @@ public class Broker extends UnicastRemoteObject implements IBroker {
             try {
                 IBroker otherBroker = (IBroker) Naming.lookup("//" + brokerAddress + "/Broker");
                 System.out.println("Connected to broker: " + brokerAddress);
-
-                // Notify existing brokers about the new connection
                 otherBroker.notify("New broker connected: " + brokerIP + ":" + brokerPort);
-
             } catch (Exception e) {
                 System.out.println("Failed to connect to broker: " + brokerAddress);
                 e.printStackTrace();
@@ -102,6 +158,14 @@ public class Broker extends UnicastRemoteObject implements IBroker {
             System.out.println("Broker is running on " + brokerIP + ":" + brokerPort);
 
             broker.registerAndConnect();
+
+            Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+                try {
+                    broker.disconnect();
+                } catch (RemoteException e) {
+                    e.printStackTrace();
+                }
+            }));
 
         } catch (Exception e) {
             e.printStackTrace();

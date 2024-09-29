@@ -21,6 +21,15 @@ public class Directory extends UnicastRemoteObject implements IDirectory {
     }
 
     @Override
+    public synchronized void removeBroker(String brokerIP, int brokerPort) throws RemoteException {
+        String brokerAddress = brokerIP + ":" + brokerPort;
+        if (activeBrokers.contains(brokerAddress)) {
+            activeBrokers.remove(brokerAddress);
+            System.out.println("Broker removed: " + brokerAddress);
+        }
+    }
+
+    @Override
     public synchronized List<String> getActiveBrokers(String newBrokerIP, int newBrokerPort) throws RemoteException {
         List<String> otherBrokers = new ArrayList<>();
         String newBrokerAddress = newBrokerIP + ":" + newBrokerPort;

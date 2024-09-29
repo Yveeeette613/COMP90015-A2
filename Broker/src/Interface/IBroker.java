@@ -1,13 +1,18 @@
 package Interface;
 import java.rmi.Remote;
 import java.rmi.RemoteException;
+import java.util.Set;
 
 public interface IBroker extends Remote {
     // Forward message to other brokers
-    void forwardMessage(String topic, String message) throws RemoteException;
-
+    void forwardMessage(String message, Set<String> visitedBrokers) throws RemoteException;
     // Notify the broker of an event
     void notify(String message) throws RemoteException;
+
+    void publishMessage(String message) throws RemoteException;
+
+    String receiveMessage() throws RemoteException;
+
     // Check the number of connected publishers
     int getConnectedPublishers() throws RemoteException;
 
