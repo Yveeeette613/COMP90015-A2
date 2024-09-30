@@ -1,6 +1,5 @@
 import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
 
 public class Topic {
     private String pubName;
@@ -34,6 +33,14 @@ public class Topic {
 
     public void setTopicName(String topicName) {
         this.topicName = topicName;
+    }
+
+    public void addSubscriber(String subName){
+        this.subscribersList.add(subName);
+    }
+
+    public void removeSubscriber(String subName){
+        this.subscribersList.remove(subName);
     }
 
     public List<String> getSubscribersList() {

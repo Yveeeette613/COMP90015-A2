@@ -1,6 +1,7 @@
 package Interface;
 import java.rmi.Remote;
 import java.rmi.RemoteException;
+import java.util.List;
 import java.util.Set;
 
 public interface IBroker extends Remote {
@@ -9,8 +10,10 @@ public interface IBroker extends Remote {
     // Notify the broker of an event
     void notify(String message) throws RemoteException;
 
+    //Publish a Message
     void publishMessage(String message) throws RemoteException;
 
+    //Receive a Message
     String receiveMessage() throws RemoteException;
 
     // Check the number of connected publishers
@@ -30,4 +33,29 @@ public interface IBroker extends Remote {
 
     // Remove a Subscriber
     void removeSubscriber(String name) throws RemoteException;
+
+    //Create a Topic
+    void createTopic(String pubName, String topicName, String topicId) throws RemoteException;
+
+    //Remove a Topic
+    void removeTopic(String topicId) throws RemoteException;
+
+    //Subscribe a Topic
+    void subscribeTopic(String topicId, String subName, Set<String> visitedBrokers) throws RemoteException;
+
+    //Unsubscribe a Topic
+    void unsubscribeTopic(String topicId, String subName, Set<String> visitedBrokers) throws RemoteException;
+
+    //Unsubscribe all Topic
+    void unsubscribeAllTopic(String subName, Set<String> visitedBrokers) throws RemoteException;
+
+    //Return the list of Subscribed Topic
+    List<String> getSubscribedTopicList(String subName, Set<String> visitedBrokers) throws RemoteException;
+
+    //Return the Topic list
+    List<String> getTopicList(Set<String> visitedBrokers) throws RemoteException;
+
+
 }
+
+

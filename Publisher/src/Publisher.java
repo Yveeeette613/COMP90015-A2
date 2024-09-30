@@ -77,14 +77,53 @@ public class Publisher {
             }));
 
             // Publish messages
+//            while (true) {
+////                System.out.print("Enter the message to publish (or 'exit' to quit): ");
+////                String message = scanner.nextLine();
+////                if (message.equalsIgnoreCase("exit")) {
+////                    break;
+////                }
+////                broker.publishMessage(message);
+////                System.out.println("Message published.");
+//
+//                System.out.print("Enter the topic ID: ");
+//                String topicID = scanner.nextLine();
+//                System.out.print("Enter the topic Name: ");
+//                String topicName = scanner.nextLine();
+//                broker.createTopic(pubName, topicName, topicID);
+//                System.out.println("Topic created.");
+//
+//            }
+
             while (true) {
-                System.out.print("Enter the message to publish (or 'exit' to quit): ");
-                String message = scanner.nextLine();
-                if (message.equalsIgnoreCase("exit")) {
+                System.out.print("Enter command (publish/create/show/delete/exit): ");
+                String command = scanner.nextLine();
+
+                if (command.equalsIgnoreCase("publish")){
+                    System.out.print("Enter the message to publish (or 'exit' to quit): ");
+                    String message = scanner.nextLine();
+                    if (message.equalsIgnoreCase("exit")) {
+                        break;
+                    }
+                    broker.publishMessage(message);
+                    System.out.println("Message published.");
+                } else if (command.equalsIgnoreCase("create")) {
+                    System.out.print("Enter the topic ID: ");
+                    String topicID = scanner.nextLine();
+                    System.out.print("Enter the topic Name: ");
+                    String topicName = scanner.nextLine();
+                    broker.createTopic(pubName, topicName, topicID);
+                    System.out.println("Topic created.");
+                } else if (command.equalsIgnoreCase("show")) {
+                    System.out.print("Enter the topic ID: ");
+
+                } else if (command.equalsIgnoreCase("current")) {
+                    System.out.print("Enter the topic ID: ");
+                } else if (command.equalsIgnoreCase("exit")) {
                     break;
+                } else{
+                    System.out.println(command);
                 }
-                broker.publishMessage(message);
-                System.out.println("Message published.");
             }
 
 

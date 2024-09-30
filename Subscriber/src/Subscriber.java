@@ -66,16 +66,32 @@ public class Subscriber {
 
             // Main thread for other functions
             while (true) {
-                System.out.print("Enter command (subscribe/unsubscribe/exit): ");
+                System.out.print("Enter command (topic/subscribe/unsubscribe/current/exit): ");
                 String command = scanner.nextLine();
 
-                if (command.equalsIgnoreCase("exit")) {
+                if (command.equalsIgnoreCase("topic")){
+                    List<String> topicList = broker.getTopicList(null);
+                    for (String topic: topicList){
+                        System.out.println(topic);
+                    }
+                } else if (command.equalsIgnoreCase("subscribe")) {
+                    System.out.print("Topic ID: ");
+                    String topicID = scanner.nextLine();
+                    broker.subscribeTopic(topicID, subName,null);
+                } else if (command.equalsIgnoreCase("unsubscribe")) {
+                    System.out.print("Topic ID: ");
+                    String topicID = scanner.nextLine();
+                    broker.unsubscribeTopic(topicID, subName,null);
+                } else if (command.equalsIgnoreCase("current")) {
+                    List<String> subscribedTopicList = broker.getSubscribedTopicList(subName, null);
+                    for (String topic: subscribedTopicList){
+                        System.out.println(topic);
+                    }
+                } else if (command.equalsIgnoreCase("exit")) {
                     break;
                 } else{
                     System.out.println(command);
                 }
-                // Handle other commands such as subscribe/unsubscribe
-                // Example: broker.subscribeToTopic(subName, topicName);
             }
 
 
