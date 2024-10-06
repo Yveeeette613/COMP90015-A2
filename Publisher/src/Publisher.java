@@ -1,6 +1,7 @@
 import Interface.IBroker;
 import Interface.IDirectory;
 import java.rmi.Naming;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
 
@@ -11,15 +12,35 @@ public class Publisher {
     public static void main(String[] args) {
         try {
             Scanner scanner = new Scanner(System.in);
+            String directoryIP = "";
+            int directoryPort = 0;
+            boolean validInput = false;
 
-            // Connect to DirectoryService
-            IDirectory directoryService = (IDirectory) Naming.lookup("//localhost:1099/DirectoryService");
+            while (!validInput) {
+                System.out.println("Please enter username directory_ip directory_port: ");
+                String input = scanner.nextLine();
+                String[] parts = input.split(" ");
 
+                if (parts.length == 3) {
+                    try {
+                        pubName = parts[0];
+                        directoryIP = parts[1];
+                        directoryPort = Integer.parseInt(parts[2]);
+                        validInput = true;
+                    } catch (NumberFormatException e) {
+                        System.out.println("Invalid port number. Please enter a valid username, IP address, and port number.");
+                    }
+                } else {
+                    System.out.println("Invalid format. Please enter the username, IP address, and port number in the format: username directory_ip directory_port");
+                }
+            }
+
+            IDirectory directoryService = (IDirectory) Naming.lookup("//" + directoryIP + ":" + directoryPort + "/DirectoryService");
             // Get the list of active brokers
             List<String> activeBrokers = directoryService.getActiveBrokers("", 0);
 
-            System.out.println("Please enter your name: ");
-            pubName = scanner.nextLine();
+//            System.out.println("Please enter your name: ");
+//            pubName = scanner.nextLine();
 
             if (activeBrokers.isEmpty()) {
                 System.out.println("No active brokers found.");
@@ -100,12 +121,12 @@ public class Publisher {
                 String command = scanner.nextLine();
 
                 if (command.equalsIgnoreCase("publish")){
-                    System.out.print("Enter the message to publish (or 'exit' to quit): ");
+                    System.out.print("Enter the topic ID: ");
+                    String topicID = scanner.nextLine();
+                    System.out.print("Enter the message: ");
                     String message = scanner.nextLine();
-                    if (message.equalsIgnoreCase("exit")) {
-                        break;
-                    }
-                    broker.publishMessage(message);
+
+                    broker.publishMessage(topicID, message);
                     System.out.println("Message published.");
                 } else if (command.equalsIgnoreCase("create")) {
                     System.out.print("Enter the topic ID: ");
@@ -115,19 +136,24 @@ public class Publisher {
                     broker.createTopic(pubName, topicName, topicID);
                     System.out.println("Topic created.");
                 } else if (command.equalsIgnoreCase("show")) {
+                    List<String> topicList = broker.getPubTopicList(pubName);
+                    for (String topic: topicList){
+                        System.out.println(topic);
+                    }
+                } else if (command.equalsIgnoreCase("delete")) {
                     System.out.print("Enter the topic ID: ");
-
-                } else if (command.equalsIgnoreCase("current")) {
-                    System.out.print("Enter the topic ID: ");
+                    String topicId = scanner.nextLine();
+                    broker.removeTopic(topicId);
+                    System.out.println("Topic removed.");
                 } else if (command.equalsIgnoreCase("exit")) {
                     break;
                 } else{
-                    System.out.println(command);
+                    System.out.println("Wrong Command, please enter again:)");
                 }
             }
 
 
-//            // Uncomment the following lines to send a message to the broker
+//            // send a message to the broker
 //            System.out.print("Please select command: create, publish, show, delete.");
 //            String topic = scanner.nextLine();
 

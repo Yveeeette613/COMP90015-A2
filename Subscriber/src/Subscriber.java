@@ -12,13 +12,31 @@ public class Subscriber {
     public static void main(String[] args) {
         try {
             Scanner scanner = new Scanner(System.in);
+            String directoryIP = "";
+            int directoryPort = 0;
+            boolean validInput = false;
 
-            IDirectory directoryService = (IDirectory) Naming.lookup("//localhost:1099/DirectoryService");
+            while (!validInput) {
+                System.out.println("Please enter username directory_ip directory_port: ");
+                String input = scanner.nextLine();
+                String[] parts = input.split(" ");
 
+                if (parts.length == 3) {
+                    try {
+                        subName = parts[0];
+                        directoryIP = parts[1];
+                        directoryPort = Integer.parseInt(parts[2]);
+                        validInput = true;
+                    } catch (NumberFormatException e) {
+                        System.out.println("Invalid port number. Please enter a valid username, IP address, and port number.");
+                    }
+                } else {
+                    System.out.println("Invalid format. Please enter the username, IP address, and port number in the format: username directory_ip directory_port");
+                }
+            }
+
+            IDirectory directoryService = (IDirectory) Naming.lookup("//" + directoryIP + ":" + directoryPort + "/DirectoryService");
             List<String> activeBrokers = directoryService.getActiveBrokers("", 0);
-
-            System.out.println("Please enter your name: ");
-            subName = scanner.nextLine();
 
             if (activeBrokers.isEmpty()) {
                 System.out.println("No active brokers found.");

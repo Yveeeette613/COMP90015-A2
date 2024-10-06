@@ -29,8 +29,96 @@ public class Broker extends UnicastRemoteObject implements IBroker {
         this.topicList = new ArrayList<>();
     }
 
+//    @Override
+//    public synchronized void forwardMessage(String message, Set<String> visitedBrokers) throws RemoteException {
+//        if (visitedBrokers == null) {
+//            visitedBrokers = new HashSet<>();
+//        }
+//
+//        // Add current broker to the set of visited brokers
+//        visitedBrokers.add(brokerIP + ":" + brokerPort);
+//
+//        for (String subscriber : connectedSubscribers) {
+//            System.out.println("Forwarding message to subscriber: " + subscriber);
+//            messageQueue.add(message);
+//        }
+//
+//        List<String> otherBrokers = directoryService.getActiveBrokers(brokerIP, brokerPort);
+//        for (String brokerAddress : otherBrokers) {
+//            if (!visitedBrokers.contains(brokerAddress)) {
+//                try {
+//                    IBroker otherBroker = (IBroker) Naming.lookup("//" + brokerAddress + "/Broker");
+//                    otherBroker.forwardMessage(message, visitedBrokers);
+//                } catch (Exception e) {
+//                    System.out.println("Failed to forward message to broker: " + brokerAddress);
+//                    e.printStackTrace();
+//                }
+//            }
+//        }
+//    }
+
+
+    public List<String> getSubscriberListForTopic(String topicID){
+        for (Topic topic:topicList){
+            if (topic.getTopicId().equals(topicID)){
+                return topic.getSubscribersList();
+            }
+        }
+        return null;
+    }
+
+
+
     @Override
-    public synchronized void forwardMessage(String message, Set<String> visitedBrokers) throws RemoteException {
+    public synchronized void forwardMessage(String topicID, List<String> subList, String message, Set<String> visitedBrokers) throws RemoteException {
+        if (visitedBrokers == null) {
+            visitedBrokers = new HashSet<>();
+        }
+
+        if (subList == null){
+            for (Topic topic:topicList){
+                if (topic.getTopicId().equals(topicID)){
+                    subList = new ArrayList<>(topic.getSubscribersList());
+                }
+            }
+        }
+
+
+        // Add current broker to the set of visited brokers
+        visitedBrokers.add(brokerIP + ":" + brokerPort);
+
+
+        if (subList != null) {
+            Iterator<String> iterator = subList.iterator();
+            while (iterator.hasNext()) {
+                String subscriber = iterator.next();
+                if (connectedSubscribers.contains(subscriber)) {
+                    System.out.println("Forwarding message to subscriber: " + subscriber);
+                    iterator.remove();
+                    messageQueue.add(message);
+                }
+            }
+
+            List<String> otherBrokers = directoryService.getActiveBrokers(brokerIP, brokerPort);
+            for (String brokerAddress : otherBrokers) {
+                if (!visitedBrokers.contains(brokerAddress)) {
+                    try {
+                        IBroker otherBroker = (IBroker) Naming.lookup("//" + brokerAddress + "/Broker");
+                        otherBroker.forwardMessage(topicID, subList, message, visitedBrokers);
+                    } catch (Exception e) {
+                        System.out.println("Failed to forward message to broker: " + brokerAddress);
+                        e.printStackTrace();
+                    }
+                }
+            }
+        }
+    }
+
+
+
+
+    @Override
+    public synchronized void forwardMessageToSub(String message, String subName, Set<String> visitedBrokers) throws RemoteException {
         if (visitedBrokers == null) {
             visitedBrokers = new HashSet<>();
         }
@@ -38,17 +126,19 @@ public class Broker extends UnicastRemoteObject implements IBroker {
         // Add current broker to the set of visited brokers
         visitedBrokers.add(brokerIP + ":" + brokerPort);
 
-        for (String subscriber : connectedSubscribers) {
-            System.out.println("Forwarding message to subscriber: " + subscriber);
+        // Forward message to the specified subscriber if connected
+        if (connectedSubscribers.contains(subName)) {
+            System.out.println("Forwarding message to subscriber: " + subName);
             messageQueue.add(message);
         }
 
+        // Forward message to other brokers
         List<String> otherBrokers = directoryService.getActiveBrokers(brokerIP, brokerPort);
         for (String brokerAddress : otherBrokers) {
             if (!visitedBrokers.contains(brokerAddress)) {
                 try {
                     IBroker otherBroker = (IBroker) Naming.lookup("//" + brokerAddress + "/Broker");
-                    otherBroker.forwardMessage(message, visitedBrokers);
+                    otherBroker.forwardMessageToSub(message, subName, visitedBrokers);
                 } catch (Exception e) {
                     System.out.println("Failed to forward message to broker: " + brokerAddress);
                     e.printStackTrace();
@@ -57,13 +147,29 @@ public class Broker extends UnicastRemoteObject implements IBroker {
         }
     }
 
+
+
     @Override
-    public synchronized void publishMessage(String message) throws RemoteException {
+    public synchronized void publishMessage(String topicID, String message) throws RemoteException {
         String timestamp = new SimpleDateFormat("dd/MM HH:mm:ss").format(new Date());
-        String formattedMessage = "[" + timestamp + "] " + message;
+        String topicName = null;
+        for (Topic topic:topicList){
+            if (topic.getTopicId().equals(topicID)){
+                topicName = topic.getTopicName();
+            }
+        }
+        String formattedMessage = "[" + timestamp + "] " + topicID + ":" + topicName + " " + message;
         System.out.println("Publishing message: " + formattedMessage);
-        forwardMessage(formattedMessage, null);
+        forwardMessage(topicID, null, formattedMessage, null);
     }
+
+//    @Override
+//    public synchronized void publishMessage(String message) throws RemoteException {
+//        String timestamp = new SimpleDateFormat("dd/MM HH:mm:ss").format(new Date());
+//        String formattedMessage = "[" + timestamp + "] " + message;
+//        System.out.println("Publishing message: " + formattedMessage);
+//        forwardMessage(formattedMessage, null);
+//    }
 
 
 
@@ -78,8 +184,8 @@ public class Broker extends UnicastRemoteObject implements IBroker {
     }
 
     @Override
-    public int getConnectedPublishers() throws RemoteException {
-        return connectedPublishers.size();
+    public List<String> getConnectedPublishers() throws RemoteException {
+        return connectedPublishers;
     }
 
     @Override
@@ -88,39 +194,60 @@ public class Broker extends UnicastRemoteObject implements IBroker {
         System.out.println("New publisher connected: " + name);
     }
 
-
-
-    public synchronized List<String> getTopicList(Set<String> visitedBrokers) throws RemoteException {
-        if (visitedBrokers == null) {
-            visitedBrokers = new HashSet<>();
-        }
-
+    public synchronized List<String> getPubTopicList(String pubName) throws RemoteException{
         List<String> topicQueue = new ArrayList<>();
 
-        // Add current broker to the set of visited brokers
-        visitedBrokers.add(brokerIP + ":" + brokerPort);
+        for (Topic topic: topicList){
+            if (Objects.equals(topic.getPubName(), pubName)){
+                topicQueue.add("Topic ID: " + topic.getTopicId() + " Topic Name: " + topic.getTopicName() +
+                        " Subscriber count: " + topic.getSubscribersList().size());
 
-        // Add topics from this broker
-        for (Topic topic : topicList) {
-            topicQueue.add("Topic ID: " + topic.getTopicId() + " Topic Name: " + topic.getTopicName() + " Publisher: " + topic.getPubName());
-        }
-
-        // Get topics from other brokers
-        List<String> otherBrokers = directoryService.getActiveBrokers(brokerIP, brokerPort);
-        for (String brokerAddress : otherBrokers) {
-            if (!visitedBrokers.contains(brokerAddress)) {
-                try {
-                    IBroker otherBroker = (IBroker) Naming.lookup("//" + brokerAddress + "/Broker");
-                    topicQueue.addAll(otherBroker.getTopicList(visitedBrokers));
-                } catch (Exception e) {
-                    System.out.println("Failed to get topics from broker: " + brokerAddress);
-                    e.printStackTrace();
-                }
             }
         }
 
         return topicQueue;
     }
+
+
+
+@Override
+public synchronized List<String> getTopicList(Set<String> visitedBrokers) throws RemoteException {
+    if (visitedBrokers == null) {
+        visitedBrokers = new HashSet<>();
+    }
+
+    List<String> topicQueue = new ArrayList<>();
+
+    // Add current broker to the set of visited brokers
+    visitedBrokers.add(brokerIP + ":" + brokerPort);
+
+    // Add topics from this broker
+    for (Topic topic : topicList) {
+        topicQueue.add("Topic ID: " + topic.getTopicId() + " Topic Name: " + topic.getTopicName() + " Publisher: " + topic.getPubName());
+    }
+
+    // Get topics from other brokers
+    List<String> otherBrokers = directoryService.getActiveBrokers(brokerIP, brokerPort);
+    for (String brokerAddress : otherBrokers) {
+        if (!visitedBrokers.contains(brokerAddress)) {
+            try {
+                IBroker otherBroker = (IBroker) Naming.lookup("//" + brokerAddress + "/Broker");
+                List<String> topicQueueList = otherBroker.getTopicList(visitedBrokers);
+                for (String topicString : topicQueueList){
+                    if (!topicQueue.contains(topicString)){
+                        topicQueue.add(topicString);
+                    }
+                }
+//                topicQueue.addAll();
+            } catch (Exception e) {
+                System.out.println("Failed to get topics from broker: " + brokerAddress);
+                e.printStackTrace();
+            }
+        }
+    }
+    return topicQueue;
+}
+
 
     public synchronized List<String> getSubscribedTopicList(String subName, Set<String> visitedBrokers) throws RemoteException {
         if (visitedBrokers == null) {
@@ -145,7 +272,15 @@ public class Broker extends UnicastRemoteObject implements IBroker {
             if (!visitedBrokers.contains(brokerAddress)) {
                 try {
                     IBroker otherBroker = (IBroker) Naming.lookup("//" + brokerAddress + "/Broker");
-                    topicQueue.addAll(otherBroker.getSubscribedTopicList(subName, visitedBrokers));
+//                    topicQueue.addAll(otherBroker.getSubscribedTopicList(subName, visitedBrokers));
+
+                    List<String> topicQueueList = otherBroker.getSubscribedTopicList(subName,visitedBrokers);
+                    for (String topicString : topicQueueList){
+                        if (!topicQueue.contains(topicString)){
+                            topicQueue.add(topicString);
+                        }
+                    }
+//                t
                 } catch (Exception e) {
                     System.out.println("Failed to get topics from broker: " + brokerAddress);
                     e.printStackTrace();
@@ -163,18 +298,33 @@ public class Broker extends UnicastRemoteObject implements IBroker {
 
 
 
+
+
+
     @Override
     public synchronized void removePublisher(String name) throws RemoteException {
         connectedPublishers.remove(name);
         System.out.println("Publisher disconnected: " + name);
 
-        // Remove topics created by this publisher
-        topicList.removeIf(topic -> Objects.equals(topic.getPubName(), name));
+        Iterator<Topic> iterator = topicList.iterator();
+        while (iterator.hasNext()) {
+            Topic topic = iterator.next();
+            if (Objects.equals(topic.getPubName(), name)) {
+                iterator.remove();
+                System.out.println("Topic removed. Topic ID: " + topic.getTopicId() + ". Topic Name: " + topic.getTopicName()
+                        + ". Publisher: " + topic.getPubName());
+                for (String subName : topic.getSubscribersList()) {
+                    String msg = "Topic removed. Topic ID: " + topic.getTopicId() + ". Topic Name: " + topic.getTopicName()
+                            + ". Publisher: " + topic.getPubName();
+                    forwardMessageToSub(msg, subName, null);
+                }
+            }
+        }
     }
 
     @Override
-    public int getConnectedSubscribers() throws RemoteException {
-        return connectedSubscribers.size();
+    public List<String> getConnectedSubscribers() throws RemoteException {
+        return connectedSubscribers;
     }
 
     @Override
@@ -200,11 +350,19 @@ public class Broker extends UnicastRemoteObject implements IBroker {
 
     @Override
     public synchronized void removeTopic(String topicId) throws RemoteException {
-        for (Topic topic: topicList) {
+        Iterator<Topic> iterator = topicList.iterator();
+        while (iterator.hasNext()) {
+            Topic topic = iterator.next();
             if (topic.getTopicId().equals(topicId)) {
-                topicList.remove(topic);
+                iterator.remove();
                 System.out.println("Topic removed. Topic ID: " + topic.getTopicId() + ". Topic Name: " + topic.getTopicName()
                         + ". Publisher: " + topic.getPubName());
+                for (String subName : topic.getSubscribersList()) {
+                    String msg = "Topic removed. Topic ID: " + topic.getTopicId() + ". Topic Name: " + topic.getTopicName()
+                            + ". Publisher: " + topic.getPubName();
+                    forwardMessageToSub(msg, subName, null);
+                }
+                break;
             }
         }
     }
@@ -250,6 +408,7 @@ public class Broker extends UnicastRemoteObject implements IBroker {
                     IBroker otherBroker = (IBroker) Naming.lookup("//" + brokerAddress + "/Broker");
                     otherBroker.subscribeTopic(topicId, subName, visitedBrokers);
                     topicFound = true;
+                    break;
                 } catch (Exception e) {
                     System.out.println("Failed to subscribe to topic from broker: " + brokerAddress);
                     e.printStackTrace();
@@ -369,17 +528,57 @@ public class Broker extends UnicastRemoteObject implements IBroker {
     public static void main(String[] args) {
         try {
             Scanner scanner = new Scanner(System.in);
+//            System.out.print("Enter the broker IP: ");
+//            String brokerIP = scanner.nextLine();
+//
+//            System.out.print("Enter the broker port: ");
+//            int brokerPort = Integer.parseInt(scanner.nextLine());
+//
+//            IDirectory directoryService = (IDirectory) Naming.lookup("//localhost:1099/DirectoryService");
+//
+//            System.out.println("Please enter user name, IP and port (format: username borker_ip broker_port): ");
+            String brokerIP = "";
+            int brokerPort = 0;
+            String directoryIP = "";
+            int directoryPort = 0;
+            boolean validInput = false;
 
-            System.out.print("Enter the broker IP: ");
-            String brokerIP = scanner.nextLine();
+            while (!validInput) {
+                System.out.println("Please enter the broker IP, broker port, directory service IP, and directory service port (format: brokerIP:brokerPort directoryServiceIP:directoryServicePort): ");
+                String input = scanner.nextLine();
+                String[] parts = input.split(" ");
 
-            System.out.print("Enter the broker port: ");
-            int brokerPort = Integer.parseInt(scanner.nextLine());
+                if (parts.length == 2) {
+                    String[] brokerParts = parts[0].split(":");
+                    String[] directoryParts = parts[1].split(":");
 
-            IDirectory directoryService = (IDirectory) Naming.lookup("//localhost:1099/DirectoryService");
+                    if (brokerParts.length == 2 && directoryParts.length == 2) {
+                        try {
+                            brokerIP = brokerParts[0];
+                            brokerPort = Integer.parseInt(brokerParts[1]);
+                            directoryIP = directoryParts[0];
+                            directoryPort = Integer.parseInt(directoryParts[1]);
+                            validInput = true;
+                        } catch (NumberFormatException e) {
+                            System.out.println("Invalid port number. Please enter a valid IP address and port number.");
+                        }
+                    } else {
+                        System.out.println("Invalid format. Please enter the IP address and port number in the format: brokerIP:brokerPort directoryServiceIP:directoryServicePort");
+                    }
+                } else {
+                    System.out.println("Invalid format. Please enter the IP address and port number in the format: brokerIP:brokerPort directoryServiceIP:directoryServicePort");
+                }
+            }
 
+//            IDirectory directoryService = null;
+//            try{
+//                directoryService = (IDirectory) Naming.lookup("//" + directoryIP + ":" + directoryPort + "/DirectoryService");
+//            } catch (Exception e) {
+//                System.out.println("Cannot connect with directory. Please check the connection of directory first.");
+//                e.printStackTrace();
+//            }
+            IDirectory directoryService = (IDirectory) Naming.lookup("//" + directoryIP + ":" + directoryPort + "/DirectoryService");
             Broker broker = new Broker(brokerIP, brokerPort, directoryService);
-
             java.rmi.registry.LocateRegistry.createRegistry(brokerPort);
             Naming.rebind("//" + brokerIP + ":" + brokerPort + "/Broker", broker);
             System.out.println("Broker is running on " + brokerIP + ":" + brokerPort);

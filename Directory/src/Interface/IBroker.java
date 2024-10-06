@@ -6,18 +6,25 @@ import java.util.Set;
 
 public interface IBroker extends Remote {
     // Forward message to other brokers
-    void forwardMessage(String message, Set<String> visitedBrokers) throws RemoteException;
+    void forwardMessage(String topicID, List<String> subList, String message, Set<String> visitedBrokers) throws RemoteException;
+
+//    void forwardMessage(String message, Set<String> visitedBrokers) throws RemoteException;
+
+
+
     // Notify the broker of an event
     void notify(String message) throws RemoteException;
 
     //Publish a Message
-    void publishMessage(String message) throws RemoteException;
+    void publishMessage(String topicID, String message) throws RemoteException;
+//    void publishMessage(String message) throws RemoteException;
+
 
     //Receive a Message
     String receiveMessage() throws RemoteException;
 
     // Check the number of connected publishers
-    int getConnectedPublishers() throws RemoteException;
+    List<String> getConnectedPublishers() throws RemoteException;
 
     // Add a publisher
     void addPublisher(String name) throws RemoteException;
@@ -26,7 +33,7 @@ public interface IBroker extends Remote {
     void removePublisher(String name) throws RemoteException;
 
     // Check the number of connected Subscribers
-    int getConnectedSubscribers() throws RemoteException;
+    List<String> getConnectedSubscribers() throws RemoteException;
 
     // Add a Subscriber
     void addSubscriber(String name) throws RemoteException;
@@ -54,6 +61,11 @@ public interface IBroker extends Remote {
 
     //Return the Topic list
     List<String> getTopicList(Set<String> visitedBrokers) throws RemoteException;
+
+    //Return the Topic list for the publisher
+    List<String> getPubTopicList(String pubName) throws RemoteException;
+
+    void forwardMessageToSub(String message, String subName, Set<String> visitedBrokers) throws RemoteException;
 
 
 }

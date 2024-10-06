@@ -1,4 +1,3 @@
-// Subscriber/src/MessageReceiver.java
 import Interface.IBroker;
 
 public class MessageReceiver implements Runnable {
@@ -14,8 +13,7 @@ public class MessageReceiver implements Runnable {
             while (true) {
                 String message = broker.receiveMessage();
                 if (message != null) {
-                    System.out.println("Received message: " + message);
-                }
+                    System.out.println("\nReceived message: " + message);                }
             }
         } catch (Exception e) {
             e.printStackTrace();
