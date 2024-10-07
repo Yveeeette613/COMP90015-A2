@@ -8,6 +8,11 @@ import java.util.Scanner;
 public class Subscriber {
     private static String subName;
     private static IBroker broker = null;
+    private static final String listAllTopicAction = "list";
+    private static final String subscribeTopicAction = "sub";
+    private static final String currentSubscriptionTopicAction = "current";
+    private static final String unsubscribeTopicAction = "unsub";
+
 
     public static void main(String[] args) {
         try {
@@ -84,32 +89,87 @@ public class Subscriber {
 
             // Main thread for other functions
             while (true) {
-                System.out.print("Enter command (topic/subscribe/unsubscribe/current/exit): ");
+                System.out.println("Please select command: list, sub, current, unsub.");
                 String command = scanner.nextLine();
-
-                if (command.equalsIgnoreCase("topic")){
-                    List<String> topicList = broker.getTopicList(null);
-                    for (String topic: topicList){
-                        System.out.println(topic);
-                    }
-                } else if (command.equalsIgnoreCase("subscribe")) {
-                    System.out.print("Topic ID: ");
-                    String topicID = scanner.nextLine();
-                    broker.subscribeTopic(topicID, subName,null);
-                } else if (command.equalsIgnoreCase("unsubscribe")) {
-                    System.out.print("Topic ID: ");
-                    String topicID = scanner.nextLine();
-                    broker.unsubscribeTopic(topicID, subName,null);
-                } else if (command.equalsIgnoreCase("current")) {
-                    List<String> subscribedTopicList = broker.getSubscribedTopicList(subName, null);
-                    for (String topic: subscribedTopicList){
-                        System.out.println(topic);
-                    }
-                } else if (command.equalsIgnoreCase("exit")) {
-                    break;
-                } else{
-                    System.out.println(command);
+                String[] parts = command.split(" ");
+                if (parts.length > 2) {
+                    System.out.println("Invalid command format.");
+                    continue;
                 }
+                String topicID = null;
+
+                String action = parts[0];
+                if (parts.length > 1){
+                    topicID = parts[1];
+                }
+
+                try {
+                    switch (action.toLowerCase()) {
+                        case listAllTopicAction:
+                            List<String> topicList = broker.getTopicList(null);
+                            for (String topic : topicList) {
+                                System.out.println(topic);
+                            }
+                            break;
+
+                        case subscribeTopicAction:
+                            if (parts.length != 2) {
+                                System.out.println("Invalid command format for subscribe. Use: sub {topic_id}");
+                                break;
+                            }
+                            broker.subscribeTopic(topicID, subName, null);
+                            System.out.println("Subscribed to topic " + topicID);
+                            break;
+
+                        case currentSubscriptionTopicAction:
+                            List<String> subscribedTopicList = broker.getSubscribedTopicList(subName, null);
+                            for (String topic : subscribedTopicList) {
+                                System.out.println(topic);
+                            }
+                            break;
+
+                        case unsubscribeTopicAction:
+                            if (parts.length != 2) {
+                                System.out.println("Invalid command format for unsubscribe. Use: unsub {topic_id}");
+                                break;
+                            }
+                            broker.unsubscribeTopic(topicID, subName, null);
+                            System.out.println("Unsubscribed from topic " + topicID);
+                            break;
+
+                        default:
+                            System.out.println("Unknown command. Please try again.");
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+
+
+
+
+//                if (command.equalsIgnoreCase("topic")){
+//                    List<String> topicList = broker.getTopicList(null);
+//                    for (String topic: topicList){
+//                        System.out.println(topic);
+//                    }
+//                } else if (command.equalsIgnoreCase("subscribe")) {
+//                    System.out.print("Topic ID: ");
+//                    String topicID = scanner.nextLine();
+//                    broker.subscribeTopic(topicID, subName,null);
+//                } else if (command.equalsIgnoreCase("unsubscribe")) {
+//                    System.out.print("Topic ID: ");
+//                    String topicID = scanner.nextLine();
+//                    broker.unsubscribeTopic(topicID, subName,null);
+//                } else if (command.equalsIgnoreCase("current")) {
+//                    List<String> subscribedTopicList = broker.getSubscribedTopicList(subName, null);
+//                    for (String topic: subscribedTopicList){
+//                        System.out.println(topic);
+//                    }
+//                } else if (command.equalsIgnoreCase("exit")) {
+//                    break;
+//                } else{
+//                    System.out.println(command);
+//                }
             }
 
 

@@ -11,12 +11,11 @@ public interface IBroker extends Remote {
 //    void forwardMessage(String message, Set<String> visitedBrokers) throws RemoteException;
 
 
-
     // Notify the broker of an event
     void notify(String message) throws RemoteException;
 
     //Publish a Message
-    void publishMessage(String topicID, String message) throws RemoteException;
+    String publishMessage(String pubName, String topicID, String message) throws RemoteException;
 //    void publishMessage(String message) throws RemoteException;
 
 
@@ -42,10 +41,10 @@ public interface IBroker extends Remote {
     void removeSubscriber(String name) throws RemoteException;
 
     //Create a Topic
-    void createTopic(String pubName, String topicName, String topicId) throws RemoteException;
+    String createTopic(String pubName, String topicName, String topicId) throws RemoteException;
 
     //Remove a Topic
-    void removeTopic(String topicId) throws RemoteException;
+    String removeTopic(String pubName, String topicId) throws RemoteException;
 
     //Subscribe a Topic
     void subscribeTopic(String topicId, String subName, Set<String> visitedBrokers) throws RemoteException;
@@ -67,7 +66,6 @@ public interface IBroker extends Remote {
 
     void forwardMessageToSub(String message, String subName, Set<String> visitedBrokers) throws RemoteException;
 
-
+    boolean checkUnique(String topicId, Set<String> visitedBroker) throws RemoteException;
 }
-
 

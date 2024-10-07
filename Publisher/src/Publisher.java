@@ -8,6 +8,11 @@ import java.util.Scanner;
 public class Publisher {
     private static String pubName;
     private static IBroker broker = null;
+    private static final String createTopicAction = "create";
+    private static final String publishMessageAction = "publish";
+    private static final String showExistedTopicAction = "show";
+    private static final String deleteTopicAction = "delete";
+
 
     public static void main(String[] args) {
         try {
@@ -117,39 +122,109 @@ public class Publisher {
 //            }
 
             while (true) {
-                System.out.print("Enter command (publish/create/show/delete/exit): ");
+                System.out.println("Please select command: create, publish, show, delete.");
                 String command = scanner.nextLine();
-
-                if (command.equalsIgnoreCase("publish")){
-                    System.out.print("Enter the topic ID: ");
-                    String topicID = scanner.nextLine();
-                    System.out.print("Enter the message: ");
-                    String message = scanner.nextLine();
-
-                    broker.publishMessage(topicID, message);
-                    System.out.println("Message published.");
-                } else if (command.equalsIgnoreCase("create")) {
-                    System.out.print("Enter the topic ID: ");
-                    String topicID = scanner.nextLine();
-                    System.out.print("Enter the topic Name: ");
-                    String topicName = scanner.nextLine();
-                    broker.createTopic(pubName, topicName, topicID);
-                    System.out.println("Topic created.");
-                } else if (command.equalsIgnoreCase("show")) {
-                    List<String> topicList = broker.getPubTopicList(pubName);
-                    for (String topic: topicList){
-                        System.out.println(topic);
-                    }
-                } else if (command.equalsIgnoreCase("delete")) {
-                    System.out.print("Enter the topic ID: ");
-                    String topicId = scanner.nextLine();
-                    broker.removeTopic(topicId);
-                    System.out.println("Topic removed.");
-                } else if (command.equalsIgnoreCase("exit")) {
-                    break;
-                } else{
-                    System.out.println("Wrong Command, please enter again:)");
+                String[] parts = command.split(" ", 3);
+                if (parts.length < 1) {
+                    System.out.println("Invalid command format.");
+                    continue;
                 }
+                String topicID = null;
+
+                String action = parts[0];
+                if (parts.length > 1){
+                    topicID = parts[1];
+                }
+
+                try {
+                    switch (action.toLowerCase()){
+                        case createTopicAction:
+                            if (parts.length != 3) {
+                                System.out.println("Invalid command format for create. Use: create {topic_id} {topic_name}");
+                                break;
+                            }
+                            String topicName = parts[2];
+//                            if (broker.createTopic(pubName, topicName, topicID)){
+//                                System.out.println("Topic created.");
+//                            } else {
+//                                System.out.println("Topic ID has already existed, please retry with another ID");
+//                            }
+                            String createMsg = broker.createTopic(pubName, topicName, topicID);
+                            System.out.println(createMsg);
+                            break;
+
+                        case publishMessageAction:
+                            if (parts.length != 3) {
+                                System.out.println("Invalid command format for publish. Use: publish {topic_id} {message}");
+                                break;
+                            }
+                            String message = parts[2];
+                            String publishNotification = broker.publishMessage(pubName, topicID, message);
+                            System.out.println(publishNotification);
+                            break;
+
+                        case showExistedTopicAction:
+                            List<String> topicList = broker.getPubTopicList(pubName);
+                            if (topicList.isEmpty()){
+                                System.out.println("No topic created yet, please create one first.");
+                            } else {
+                                for (String topic : topicList) {
+                                    System.out.println(topic);
+                                }
+                            }
+                            break;
+
+                        case deleteTopicAction:
+                            String deleteMsg = broker.removeTopic(pubName, topicID);
+                            System.out.println(deleteMsg);
+                            break;
+
+                        default:
+                            System.out.println("Unknown command. Please try again.");
+
+                    }
+
+
+
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+
+
+
+
+
+
+//                if (command.equalsIgnoreCase("publish")){
+//                    System.out.print("Enter the topic ID: ");
+//                    String topicID = scanner.nextLine();
+//                    System.out.print("Enter the message: ");
+//                    String message = scanner.nextLine();
+//
+//                    broker.publishMessage(topicID, message);
+//                    System.out.println("Message published.");
+//                } else if (command.equalsIgnoreCase("create")) {
+//                    System.out.print("Enter the topic ID: ");
+//                    String topicID = scanner.nextLine();
+//                    System.out.print("Enter the topic Name: ");
+//                    String topicName = scanner.nextLine();
+//                    broker.createTopic(pubName, topicName, topicID);
+//                    System.out.println("Topic created.");
+//                } else if (command.equalsIgnoreCase("show")) {
+//                    List<String> topicList = broker.getPubTopicList(pubName);
+//                    for (String topic: topicList){
+//                        System.out.println(topic);
+//                    }
+//                } else if (command.equalsIgnoreCase("delete")) {
+//                    System.out.print("Enter the topic ID: ");
+//                    String topicId = scanner.nextLine();
+//                    broker.removeTopic(topicId);
+//                    System.out.println("Topic removed.");
+//                } else if (command.equalsIgnoreCase("exit")) {
+//                    break;
+//                } else{
+//                    System.out.println("Wrong Command, please enter again:)");
+//                }
             }
 
 

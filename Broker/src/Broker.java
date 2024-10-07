@@ -150,17 +150,29 @@ public class Broker extends UnicastRemoteObject implements IBroker {
 
 
     @Override
-    public synchronized void publishMessage(String topicID, String message) throws RemoteException {
+    public synchronized String publishMessage(String pubName, String topicID, String message) throws RemoteException {
         String timestamp = new SimpleDateFormat("dd/MM HH:mm:ss").format(new Date());
         String topicName = null;
+        String msg = null;
         for (Topic topic:topicList){
-            if (topic.getTopicId().equals(topicID)){
+            if (topic.getTopicId().equals(topicID) && topic.getPubName().equals(pubName)){
                 topicName = topic.getTopicName();
             }
         }
-        String formattedMessage = "[" + timestamp + "] " + topicID + ":" + topicName + " " + message;
-        System.out.println("Publishing message: " + formattedMessage);
-        forwardMessage(topicID, null, formattedMessage, null);
+
+
+
+        if (topicName != null){
+            String formattedMessage = "[" + timestamp + "] " + topicID + ":" + topicName + " " + message;
+            System.out.println("Publishing message: " + formattedMessage);
+            forwardMessage(topicID, null, formattedMessage, null);
+            msg = "Message published: " + formattedMessage;
+        } else {
+            msg = "Message cannot be published because the topic was not found or the publisher does not own the topic.";
+            System.out.println(msg);
+        }
+        return msg;
+
     }
 
 //    @Override
@@ -341,22 +353,77 @@ public synchronized List<String> getTopicList(Set<String> visitedBrokers) throws
     }
 
     @Override
-    public synchronized void createTopic(String pubName, String topicName, String topicId) throws RemoteException {
-        Topic topic = new Topic(pubName, topicName, topicId);
-        topicList.add(topic);
-        System.out.println("New topic created. Topic ID: " + topic.getTopicId() + ". Topic Name: " + topic.getTopicName()
-                + ". Publisher: " + topic.getPubName());
+    public synchronized String createTopic(String pubName, String topicName, String topicId) throws RemoteException {
+        String msg = null;
+        if (checkUnique(topicId, null)){
+            Topic topic = new Topic(pubName, topicName, topicId);
+
+            topicList.add(topic);
+            msg = "New topic created. Topic ID: " + topic.getTopicId() + ". Topic Name: " + topic.getTopicName()
+                    + ". Publisher: " + topic.getPubName();
+            System.out.println(msg);
+        } else {
+            msg = "The topic ID has already been existed, please retry with a new topic ID";
+            System.out.println("Topic created fail due to duplicated topic ID.");
+        }
+        return msg;
     }
 
     @Override
-    public synchronized void removeTopic(String topicId) throws RemoteException {
+    public synchronized boolean checkUnique(String topicId, Set<String> visitedBroker) throws RemoteException {
+        if (visitedBroker == null) {
+            visitedBroker = new HashSet<>();
+        }
+
+        boolean isUnique = true;
+
+        // Add current broker to the set of visited brokers
+        visitedBroker.add(brokerIP + ":" + brokerPort);
+
+        // Check if the topic ID exists in the current broker's topic list
+        for (Topic topic : topicList) {
+            if (topic.getTopicId().equals(topicId)) {
+                System.out.println("Topic ID " + topicId + " is not unique.");
+                return false;
+            }
+        }
+
+        // Check other brokers
+        List<String> otherBrokers = directoryService.getActiveBrokers(brokerIP, brokerPort);
+        for (String brokerAddress : otherBrokers) {
+            if (!visitedBroker.contains(brokerAddress)) {
+                try {
+                    IBroker otherBroker = (IBroker) Naming.lookup("//" + brokerAddress + "/Broker");
+                    if (!otherBroker.checkUnique(topicId, visitedBroker)) {
+                        isUnique = false;
+                    }
+                } catch (Exception e) {
+                    System.out.println("Failed to check topic ID in broker: " + brokerAddress);
+                    e.printStackTrace();
+                }
+            }
+        }
+
+        if (isUnique) {
+            System.out.println("Topic ID " + topicId + " is unique.");
+        }
+
+        return isUnique;
+    }
+
+
+
+    @Override
+    public synchronized String removeTopic(String pubName, String topicId) throws RemoteException {
         Iterator<Topic> iterator = topicList.iterator();
+        String deleteMsg = "Topic cannot be removed because the topic is not existed or it isn't own by you.";
         while (iterator.hasNext()) {
             Topic topic = iterator.next();
-            if (topic.getTopicId().equals(topicId)) {
+            if (topic.getTopicId().equals(topicId) && topic.getPubName().equals(pubName)) {
                 iterator.remove();
-                System.out.println("Topic removed. Topic ID: " + topic.getTopicId() + ". Topic Name: " + topic.getTopicName()
-                        + ". Publisher: " + topic.getPubName());
+                deleteMsg = "Topic removed. Topic ID: " + topic.getTopicId() + ". Topic Name: " + topic.getTopicName()
+                        + ". Publisher: " + topic.getPubName();
+                System.out.println(deleteMsg);
                 for (String subName : topic.getSubscribersList()) {
                     String msg = "Topic removed. Topic ID: " + topic.getTopicId() + ". Topic Name: " + topic.getTopicName()
                             + ". Publisher: " + topic.getPubName();
@@ -365,6 +432,7 @@ public synchronized List<String> getTopicList(Set<String> visitedBrokers) throws
                 break;
             }
         }
+        return deleteMsg;
     }
 
 //    @Override
