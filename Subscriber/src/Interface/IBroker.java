@@ -47,10 +47,10 @@ public interface IBroker extends Remote {
     String removeTopic(String pubName, String topicId) throws RemoteException;
 
     //Subscribe a Topic
-    void subscribeTopic(String topicId, String subName, Set<String> visitedBrokers) throws RemoteException;
+    Boolean subscribeTopic(Boolean topicFound, String topicId, String subName, Set<String> visitedBrokers) throws RemoteException;
 
     //Unsubscribe a Topic
-    void unsubscribeTopic(String topicId, String subName, Set<String> visitedBrokers) throws RemoteException;
+    Boolean unsubscribeTopic(Boolean topicFound, String topicId, String subName, Set<String> visitedBrokers) throws RemoteException;
 
     //Unsubscribe all Topic
     void unsubscribeAllTopic(String subName, Set<String> visitedBrokers) throws RemoteException;

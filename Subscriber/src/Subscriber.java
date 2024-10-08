@@ -107,9 +107,15 @@ public class Subscriber {
                     switch (action.toLowerCase()) {
                         case listAllTopicAction:
                             List<String> topicList = broker.getTopicList(null);
-                            for (String topic : topicList) {
-                                System.out.println(topic);
+                            if (topicList.isEmpty()){
+                                System.out.println("No topic created now, please check later.");
+                            } else {
+                                for (String topic : topicList) {
+                                    System.out.println(topic);
+                                }
                             }
+
+
                             break;
 
                         case subscribeTopicAction:
@@ -117,14 +123,26 @@ public class Subscriber {
                                 System.out.println("Invalid command format for subscribe. Use: sub {topic_id}");
                                 break;
                             }
-                            broker.subscribeTopic(topicID, subName, null);
-                            System.out.println("Subscribed to topic " + topicID);
+                            Boolean topicSubscribed = broker.subscribeTopic(false, topicID, subName, null);
+
+                            if (topicSubscribed){
+                                System.out.println("Subscribed to topic " + topicID);
+                            } else {
+                                System.out.println("Cannot subscribe to the topic because the topic isn't existed or you have already subscribed it.");
+                            }
+
+
                             break;
 
                         case currentSubscriptionTopicAction:
                             List<String> subscribedTopicList = broker.getSubscribedTopicList(subName, null);
-                            for (String topic : subscribedTopicList) {
-                                System.out.println(topic);
+
+                            if (subscribedTopicList.isEmpty()){
+                                System.out.println("No topic subscribed, please subscribe first.");
+                            } else {
+                                for (String topic : subscribedTopicList) {
+                                    System.out.println(topic);
+                                }
                             }
                             break;
 
@@ -133,8 +151,13 @@ public class Subscriber {
                                 System.out.println("Invalid command format for unsubscribe. Use: unsub {topic_id}");
                                 break;
                             }
-                            broker.unsubscribeTopic(topicID, subName, null);
-                            System.out.println("Unsubscribed from topic " + topicID);
+                            Boolean topicUnsubscribed = broker.unsubscribeTopic(false, topicID, subName, null);
+                            if (topicUnsubscribed){
+                                System.out.println("Unsubscribed to topic " + topicID);
+                            } else {
+                                System.out.println("Cannot unsubscribe to the topic because the topic isn't existed or you didn't subscribe it.");
+                            }
+
                             break;
 
                         default:
