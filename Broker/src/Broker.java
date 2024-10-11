@@ -1,3 +1,6 @@
+//Student Name: Quan Yi
+//Student ID: 1054540
+
 import Interface.IBroker;
 import Interface.IDirectory;
 
@@ -536,9 +539,10 @@ public class Broker extends UnicastRemoteObject implements IBroker {
             boolean validInput = false;
 
             while (!validInput) {
-                System.out.println("Please enter the broker IP, broker port, directory service IP, and directory service port (format: brokerIP:brokerPort directoryServiceIP:directoryServicePort): ");
-                String input = scanner.nextLine();
-                String[] parts = input.split(" ");
+//                System.out.println("Please enter the broker IP, broker port, directory service IP, and directory service port (format: brokerIP:brokerPort directoryServiceIP:directoryServicePort): ");
+//                String input = scanner.nextLine();
+//                String[] parts = input.split(" ");
+                String[] parts = args;
 
                 if (parts.length == 2) {
                     String[] brokerParts = parts[0].split(":");
@@ -558,12 +562,11 @@ public class Broker extends UnicastRemoteObject implements IBroker {
                             System.out.println("Broker is running on " + brokerIP + ":" + brokerPort);
 
                             broker.registerAndConnect();
-
-
                             validInput = true;
                         } catch (NumberFormatException e) {
                             System.out.println("Invalid port number. Please enter a valid IP address and port number.");
-                        }
+                        } catch (Exception e) {
+                            System.out.println("Invalid port number. Please enter a valid IP address and port number.");                        }
                     } else {
                         System.out.println("Invalid format. Please enter the IP address and port number in the format: brokerIP:brokerPort directoryServiceIP:directoryServicePort");
                     }
@@ -584,6 +587,7 @@ public class Broker extends UnicastRemoteObject implements IBroker {
 
         } catch (Exception e) {
             e.printStackTrace();
+            System.exit(1);
         }
     }
 }

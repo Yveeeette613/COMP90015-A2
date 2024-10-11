@@ -1,3 +1,6 @@
+//Student Name: Quan Yi
+//Student ID: 1054540
+
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
 import java.util.ArrayList;
@@ -51,36 +54,36 @@ public class Directory extends UnicastRemoteObject implements IDirectory {
 
     public static void main(String[] args) {
         try {
-            Scanner scanner = new Scanner(System.in);
             String directoryIP = "";
             int directoryPort = 0;
             boolean validInput = false;
 
-            while (!validInput) {
-                System.out.println("Please enter the IP address and port number (format: IP port): ");
-                String input = scanner.nextLine();
-                String[] parts = input.split(" ");
+            if (args.length == 2) {
+                try {
+                    directoryIP = args[0];
+                    directoryPort = Integer.parseInt(args[1]);
+//                    validInput = true;
 
-                if (parts.length == 2) {
-                    try {
-                        directoryIP = parts[0];
-                        directoryPort = Integer.parseInt(parts[1]);
-                        validInput = true;
-                    } catch (NumberFormatException e) {
-                        System.out.println("Invalid port number. Please enter a valid IP address and port number.");
-                    }
-                } else {
-                    System.out.println("Invalid format. Please enter the IP address and port number in the format: IP port");
+                    java.rmi.registry.LocateRegistry.createRegistry(directoryPort);
+                    Directory directoryService = new Directory();
+                    java.rmi.Naming.rebind("//" + directoryIP + ":" + directoryPort + "/DirectoryService", directoryService);
+                    System.out.println("Directory Service started.");
+
+                } catch (NumberFormatException e) {
+                    System.out.println("Invalid port number. Please enter a valid IP address and port number.");
                 }
+
+
+            } else {
+                System.out.println("Invalid format. Please enter the IP address and port number in the format: IP port");
             }
 
-            java.rmi.registry.LocateRegistry.createRegistry(directoryPort);
-            Directory directoryService = new Directory();
-            java.rmi.Naming.rebind("//"+ directoryIP + ":" + directoryPort + "/DirectoryService", directoryService);
-            System.out.println("Directory Service is running...");
+
 
         } catch (Exception e) {
             e.printStackTrace();
+            System.exit(1);
         }
     }
+
 }

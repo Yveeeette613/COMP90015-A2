@@ -1,4 +1,6 @@
-// Subscriber/src/Subscriber.java
+//Student Name: Quan Yi
+//Student ID: 1054540
+
 import Interface.IBroker;
 import Interface.IDirectory;
 import java.rmi.Naming;
@@ -20,6 +22,7 @@ public class Subscriber {
             String directoryIP = "";
             int directoryPort = 0;
             boolean validInput = false;
+            List<String> activeBrokers = null;
 
             while (!validInput) {
                 System.out.println("Please enter username directory_ip directory_port: ");
@@ -32,6 +35,8 @@ public class Subscriber {
                         directoryIP = parts[1];
                         directoryPort = Integer.parseInt(parts[2]);
                         validInput = true;
+                        IDirectory directoryService = (IDirectory) Naming.lookup("//" + directoryIP + ":" + directoryPort + "/DirectoryService");
+                        activeBrokers = directoryService.getActiveBrokers("", 0);
                     } catch (NumberFormatException e) {
                         System.out.println("Invalid port number. Please enter a valid username, IP address, and port number.");
                     }
@@ -40,8 +45,8 @@ public class Subscriber {
                 }
             }
 
-            IDirectory directoryService = (IDirectory) Naming.lookup("//" + directoryIP + ":" + directoryPort + "/DirectoryService");
-            List<String> activeBrokers = directoryService.getActiveBrokers("", 0);
+//            IDirectory directoryService = (IDirectory) Naming.lookup("//" + directoryIP + ":" + directoryPort + "/DirectoryService");
+//            List<String> activeBrokers = directoryService.getActiveBrokers("", 0);
 
             if (activeBrokers.isEmpty()) {
                 System.out.println("No active brokers found.");
@@ -166,6 +171,7 @@ public class Subscriber {
 
         } catch (Exception e) {
             e.printStackTrace();
+            System.exit(1);
         } finally {
             if (broker != null) {
                 try {

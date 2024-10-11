@@ -1,3 +1,5 @@
+//Student Name: Quan Yi
+//Student ID: 1054540
 package Interface;
 import java.rmi.Remote;
 import java.rmi.RemoteException;
