@@ -105,6 +105,7 @@ public class Subscriber {
 
                 try {
                     switch (action.toLowerCase()) {
+
                         case listAllTopicAction:
                             List<String> topicList = broker.getTopicList(null);
                             if (topicList.isEmpty()){
@@ -114,8 +115,6 @@ public class Subscriber {
                                     System.out.println(topic);
                                 }
                             }
-
-
                             break;
 
                         case subscribeTopicAction:
@@ -124,19 +123,15 @@ public class Subscriber {
                                 break;
                             }
                             Boolean topicSubscribed = broker.subscribeTopic(false, topicID, subName, null);
-
                             if (topicSubscribed){
                                 System.out.println("Subscribed to topic " + topicID);
                             } else {
                                 System.out.println("Cannot subscribe to the topic because the topic isn't existed or you have already subscribed it.");
                             }
-
-
                             break;
 
                         case currentSubscriptionTopicAction:
                             List<String> subscribedTopicList = broker.getSubscribedTopicList(subName, null);
-
                             if (subscribedTopicList.isEmpty()){
                                 System.out.println("No topic subscribed, please subscribe first.");
                             } else {
@@ -157,7 +152,6 @@ public class Subscriber {
                             } else {
                                 System.out.println("Cannot unsubscribe to the topic because the topic isn't existed or you didn't subscribe it.");
                             }
-
                             break;
 
                         default:
@@ -166,33 +160,6 @@ public class Subscriber {
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
-
-
-
-
-//                if (command.equalsIgnoreCase("topic")){
-//                    List<String> topicList = broker.getTopicList(null);
-//                    for (String topic: topicList){
-//                        System.out.println(topic);
-//                    }
-//                } else if (command.equalsIgnoreCase("subscribe")) {
-//                    System.out.print("Topic ID: ");
-//                    String topicID = scanner.nextLine();
-//                    broker.subscribeTopic(topicID, subName,null);
-//                } else if (command.equalsIgnoreCase("unsubscribe")) {
-//                    System.out.print("Topic ID: ");
-//                    String topicID = scanner.nextLine();
-//                    broker.unsubscribeTopic(topicID, subName,null);
-//                } else if (command.equalsIgnoreCase("current")) {
-//                    List<String> subscribedTopicList = broker.getSubscribedTopicList(subName, null);
-//                    for (String topic: subscribedTopicList){
-//                        System.out.println(topic);
-//                    }
-//                } else if (command.equalsIgnoreCase("exit")) {
-//                    break;
-//                } else{
-//                    System.out.println(command);
-//                }
             }
 
 

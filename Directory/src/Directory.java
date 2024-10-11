@@ -13,6 +13,7 @@ public class Directory extends UnicastRemoteObject implements IDirectory {
         activeBrokers = new ArrayList<>();
     }
 
+    //Register Broker
     @Override
     public synchronized void registerBroker(String brokerIP, int brokerPort) throws RemoteException {
         String brokerAddress = brokerIP + ":" + brokerPort;
@@ -22,6 +23,7 @@ public class Directory extends UnicastRemoteObject implements IDirectory {
         }
     }
 
+    //Remove Broker
     @Override
     public synchronized void removeBroker(String brokerIP, int brokerPort) throws RemoteException {
         String brokerAddress = brokerIP + ":" + brokerPort;
@@ -31,6 +33,7 @@ public class Directory extends UnicastRemoteObject implements IDirectory {
         }
     }
 
+    //Get active broker in the directory
     @Override
     public synchronized List<String> getActiveBrokers(String newBrokerIP, int newBrokerPort) throws RemoteException {
         List<String> otherBrokers = new ArrayList<>();
@@ -45,10 +48,9 @@ public class Directory extends UnicastRemoteObject implements IDirectory {
         return otherBrokers;
     }
 
+
     public static void main(String[] args) {
         try {
-
-
             Scanner scanner = new Scanner(System.in);
             String directoryIP = "";
             int directoryPort = 0;
@@ -77,12 +79,6 @@ public class Directory extends UnicastRemoteObject implements IDirectory {
             java.rmi.Naming.rebind("//"+ directoryIP + ":" + directoryPort + "/DirectoryService", directoryService);
             System.out.println("Directory Service is running...");
 
-
-
-//            java.rmi.registry.LocateRegistry.createRegistry(1099);
-//            Directory directoryService = new Directory();
-//            java.rmi.Naming.rebind("//localhost/DirectoryService", directoryService);
-//            System.out.println("Directory Service is running...");
         } catch (Exception e) {
             e.printStackTrace();
         }

@@ -44,9 +44,6 @@ public class Publisher {
             // Get the list of active brokers
             List<String> activeBrokers = directoryService.getActiveBrokers("", 0);
 
-//            System.out.println("Please enter your name: ");
-//            pubName = scanner.nextLine();
-
             if (activeBrokers.isEmpty()) {
                 System.out.println("No active brokers found.");
                 return;
@@ -54,13 +51,9 @@ public class Publisher {
 
             // Display the list of brokers to the user
             System.out.println("Active brokers:");
-//            System.out.println("Please select brokers with less than 5 publishers.");
 
             for (int i = 0; i < activeBrokers.size(); i++) {
                 String brokerAddress = activeBrokers.get(i);
-//                IBroker tempBroker = (IBroker) Naming.lookup("//" + brokerAddress + "/Broker");
-//                int connectedPublishers = tempBroker.getConnectedPublishers();
-//                System.out.println((i + 1) + ". " + brokerAddress + " (Connected Publishers: " + connectedPublishers + ")");
                 System.out.println((i + 1) + ". " + brokerAddress);
             }
 
@@ -81,12 +74,6 @@ public class Publisher {
             // Connect to the selected broker
             broker = (IBroker) Naming.lookup("//" + brokerIP + ":" + brokerPort + "/Broker");
 
-//            // Check if the broker can accept more publishers
-//            if (broker.getConnectedPublishers() >= 5) {
-//                System.out.println("Broker has reached the maximum number of connected publishers.");
-//                return;
-//            }
-
             System.out.println("Connected to broker " + brokerIP + ":" + brokerPort);
             broker.addPublisher(pubName);
 
@@ -101,25 +88,6 @@ public class Publisher {
                     }
                 }
             }));
-
-            // Publish messages
-//            while (true) {
-////                System.out.print("Enter the message to publish (or 'exit' to quit): ");
-////                String message = scanner.nextLine();
-////                if (message.equalsIgnoreCase("exit")) {
-////                    break;
-////                }
-////                broker.publishMessage(message);
-////                System.out.println("Message published.");
-//
-//                System.out.print("Enter the topic ID: ");
-//                String topicID = scanner.nextLine();
-//                System.out.print("Enter the topic Name: ");
-//                String topicName = scanner.nextLine();
-//                broker.createTopic(pubName, topicName, topicID);
-//                System.out.println("Topic created.");
-//
-//            }
 
             while (true) {
                 System.out.println("Please select command: create, publish, show, delete.");
@@ -144,11 +112,6 @@ public class Publisher {
                                 break;
                             }
                             String topicName = parts[2];
-//                            if (broker.createTopic(pubName, topicName, topicID)){
-//                                System.out.println("Topic created.");
-//                            } else {
-//                                System.out.println("Topic ID has already existed, please retry with another ID");
-//                            }
                             String createMsg = broker.createTopic(pubName, topicName, topicID);
                             System.out.println(createMsg);
                             break;
@@ -189,55 +152,7 @@ public class Publisher {
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
-
-
-
-
-
-
-//                if (command.equalsIgnoreCase("publish")){
-//                    System.out.print("Enter the topic ID: ");
-//                    String topicID = scanner.nextLine();
-//                    System.out.print("Enter the message: ");
-//                    String message = scanner.nextLine();
-//
-//                    broker.publishMessage(topicID, message);
-//                    System.out.println("Message published.");
-//                } else if (command.equalsIgnoreCase("create")) {
-//                    System.out.print("Enter the topic ID: ");
-//                    String topicID = scanner.nextLine();
-//                    System.out.print("Enter the topic Name: ");
-//                    String topicName = scanner.nextLine();
-//                    broker.createTopic(pubName, topicName, topicID);
-//                    System.out.println("Topic created.");
-//                } else if (command.equalsIgnoreCase("show")) {
-//                    List<String> topicList = broker.getPubTopicList(pubName);
-//                    for (String topic: topicList){
-//                        System.out.println(topic);
-//                    }
-//                } else if (command.equalsIgnoreCase("delete")) {
-//                    System.out.print("Enter the topic ID: ");
-//                    String topicId = scanner.nextLine();
-//                    broker.removeTopic(topicId);
-//                    System.out.println("Topic removed.");
-//                } else if (command.equalsIgnoreCase("exit")) {
-//                    break;
-//                } else{
-//                    System.out.println("Wrong Command, please enter again:)");
-//                }
             }
-
-
-//            // send a message to the broker
-//            System.out.print("Please select command: create, publish, show, delete.");
-//            String topic = scanner.nextLine();
-
-            // System.out.print("Enter the message: ");
-            // String message = scanner.nextLine();
-            //
-            // broker.forwardMessage(topic, message);
-            // System.out.println("Message sent to broker.");
-
         } catch (Exception e) {
             e.printStackTrace();
         } finally {
