@@ -23,11 +23,11 @@ public class Subscriber {
             int directoryPort = 0;
             boolean validInput = false;
             List<String> activeBrokers = null;
+            String[] parts = args;
 
             while (!validInput) {
-                System.out.println("Please enter username directory_ip directory_port: ");
-                String input = scanner.nextLine();
-                String[] parts = input.split(" ");
+//                System.out.println("Please enter username directory_ip directory_port: ");
+//                String input = scanner.nextLine();
 
                 if (parts.length == 3) {
                     try {
@@ -37,12 +37,20 @@ public class Subscriber {
                         validInput = true;
                         IDirectory directoryService = (IDirectory) Naming.lookup("//" + directoryIP + ":" + directoryPort + "/DirectoryService");
                         activeBrokers = directoryService.getActiveBrokers("", 0);
+                        break;
                     } catch (NumberFormatException e) {
                         System.out.println("Invalid port number. Please enter a valid username, IP address, and port number.");
+                        String input = scanner.nextLine();
+                        parts = input.split(" ");
+
                     }
                 } else {
                     System.out.println("Invalid format. Please enter the username, IP address, and port number in the format: username directory_ip directory_port");
+                    String input = scanner.nextLine();
+                    parts = input.split(" ");
                 }
+
+
             }
 
 //            IDirectory directoryService = (IDirectory) Naming.lookup("//" + directoryIP + ":" + directoryPort + "/DirectoryService");
@@ -96,16 +104,16 @@ public class Subscriber {
             while (true) {
                 System.out.println("Please select command: list, sub, current, unsub.");
                 String command = scanner.nextLine();
-                String[] parts = command.split(" ");
-                if (parts.length > 2) {
+                String[] commands = command.split(" ");
+                if (commands.length > 2) {
                     System.out.println("Invalid command format.");
                     continue;
                 }
                 String topicID = null;
 
-                String action = parts[0];
-                if (parts.length > 1){
-                    topicID = parts[1];
+                String action = commands[0];
+                if (commands.length > 1){
+                    topicID = commands[1];
                 }
 
                 try {
@@ -123,7 +131,7 @@ public class Subscriber {
                             break;
 
                         case subscribeTopicAction:
-                            if (parts.length != 2) {
+                            if (commands.length != 2) {
                                 System.out.println("Invalid command format for subscribe. Use: sub {topic_id}");
                                 break;
                             }
@@ -147,7 +155,7 @@ public class Subscriber {
                             break;
 
                         case unsubscribeTopicAction:
-                            if (parts.length != 2) {
+                            if (commands.length != 2) {
                                 System.out.println("Invalid command format for unsubscribe. Use: unsub {topic_id}");
                                 break;
                             }

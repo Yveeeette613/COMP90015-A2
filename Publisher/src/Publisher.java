@@ -3,7 +3,6 @@
 import Interface.IBroker;
 import Interface.IDirectory;
 import java.rmi.Naming;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
 
@@ -23,11 +22,10 @@ public class Publisher {
             int directoryPort = 0;
             boolean validInput = false;
             List<String> activeBrokers = null;
+            String[] parts = args;
 
             while (!validInput) {
-                System.out.println("Please enter username directory_ip directory_port: ");
-                String input = scanner.nextLine();
-                String[] parts = input.split(" ");
+
 
                 if (parts.length == 3) {
                     try {
@@ -38,12 +36,18 @@ public class Publisher {
                         IDirectory directoryService = (IDirectory) Naming.lookup("//" + directoryIP + ":" + directoryPort + "/DirectoryService");
                         // Get the list of active brokers
                         activeBrokers = directoryService.getActiveBrokers("", 0);
+
                     } catch (NumberFormatException e) {
                         System.out.println("Invalid port number. Please enter a valid username, IP address, and port number.");
+                        String input = scanner.nextLine();
+                        parts = input.split(" ");
                     }
                 } else {
                     System.out.println("Invalid format. Please enter the username, IP address, and port number in the format: username directory_ip directory_port");
+                    String input = scanner.nextLine();
+                    parts = input.split(" ");
                 }
+
             }
 
 
@@ -96,36 +100,36 @@ public class Publisher {
             while (true) {
                 System.out.println("Please select command: create, publish, show, delete.");
                 String command = scanner.nextLine();
-                String[] parts = command.split(" ", 3);
-                if (parts.length < 1) {
+                String[] commands = command.split(" ", 3);
+                if (commands.length < 1) {
                     System.out.println("Invalid command format.");
                     continue;
                 }
                 String topicID = null;
 
-                String action = parts[0];
-                if (parts.length > 1){
-                    topicID = parts[1];
+                String action = commands[0];
+                if (commands.length > 1){
+                    topicID = commands[1];
                 }
 
                 try {
                     switch (action.toLowerCase()){
                         case createTopicAction:
-                            if (parts.length != 3) {
+                            if (commands.length != 3) {
                                 System.out.println("Invalid command format for create. Use: create {topic_id} {topic_name}");
                                 break;
                             }
-                            String topicName = parts[2];
+                            String topicName = commands[2];
                             String createMsg = broker.createTopic(pubName, topicName, topicID);
                             System.out.println(createMsg);
                             break;
 
                         case publishMessageAction:
-                            if (parts.length != 3) {
+                            if (commands.length != 3) {
                                 System.out.println("Invalid command format for publish. Use: publish {topic_id} {message}");
                                 break;
                             }
-                            String message = parts[2];
+                            String message = commands[2];
                             String publishNotification = broker.publishMessage(pubName, topicID, message);
                             System.out.println(publishNotification);
                             break;
